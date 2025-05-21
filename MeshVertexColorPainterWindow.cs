@@ -11,6 +11,10 @@ public class MeshVertexColorPainterWindow : EditorWindow
     private float brushFalloff = 0.5f;
     private Color paintColor = Color.red;
     private bool isPainting = false;
+    private bool R = true;
+    private bool G = true;
+    private bool B = true;
+    private bool A = true;
 
     private delegate bool HandleUtility_IntersectRayMesh(Ray ray, Mesh mesh, Matrix4x4 matrix, out RaycastHit hit);
     private static HandleUtility_IntersectRayMesh IntersectRayMesh = null;
@@ -48,9 +52,13 @@ public class MeshVertexColorPainterWindow : EditorWindow
                 EditorGUILayout.HelpBox("Selected object does not have a MeshFilter.", MessageType.Error);
             }
         }
-        brushSize = EditorGUILayout.Slider("Brush Size", brushSize, 0.01f, 10.0f);
+        brushSize = EditorGUILayout.Slider("Brush Size", brushSize, 0.01f, 100.0f);
         brushFalloff = EditorGUILayout.Slider("Brush Falloff", brushFalloff, 0.01f, 1.0f);
         paintColor = EditorGUILayout.ColorField("Paint Color", paintColor);
+        R = EditorGUILayout.Toggle("R", R);
+        G = EditorGUILayout.Toggle("G", G);
+        B = EditorGUILayout.Toggle("B", B);
+        A = EditorGUILayout.Toggle("A", A);
 
         EditorGUILayout.HelpBox("Left-click in Scene view to paint. Ctrl-Z Undo.", MessageType.Info);
     }
@@ -103,18 +111,24 @@ public class MeshVertexColorPainterWindow : EditorWindow
 
         Vector3[] vertices = mesh.vertices;
         Color[] colors = mesh.colors.Length == vertices.Length ? mesh.colors : new Color[vertices.Length];
-        Vector3 localHitPoint = meshFilter.transform.InverseTransformPoint(hit.point);
+        // Vector3 localHitPoint = meshFilter.transform.InverseTransformPoint(hit.point);
 
         Undo.RecordObject(mesh, "Paint Vertex Colors");
 
         for (int i = 0; i < vertices.Length; i++)
         {
-            float dist = Vector3.Distance(vertices[i], localHitPoint);
+            // float dist = Vector3.Distance(vertices[i], localHitPoint) / meshFilter.transform.lossyScale.x;
+            float dist = Vector3.Distance(meshFilter.transform.TransformPoint(vertices[i]), hit.point);
+
             if (dist > brushSize) continue;
 
             float falloff = Mathf.Clamp01(1.0f - dist / brushSize);
             falloff = Mathf.Pow(falloff, 1.0f / Mathf.Max(0.001f, brushFalloff));
-            colors[i] = Color.Lerp(colors[i], paintColor, falloff);
+            // colors[i] = Color.Lerp(colors[i], paintColor, falloff);
+            colors[i] = new Color(  Mathf.Lerp(colors[i].r, paintColor.r, R ? falloff : 0.0f),
+                                    Mathf.Lerp(colors[i].g, paintColor.g, G ? falloff : 0.0f),
+                                    Mathf.Lerp(colors[i].b, paintColor.b, B ? falloff : 0.0f),
+                                    Mathf.Lerp(colors[i].a, paintColor.a, A ? falloff : 0.0f));
         }
 
         mesh.colors = colors;
