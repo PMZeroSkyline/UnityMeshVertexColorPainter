@@ -1,6 +1,5 @@
 # 🎨 Mesh Vertex Color Painter for Unity
 A simple Unity Editor tool that allows direct vertex color painting on meshes without requiring colliders.
-![image](image.png)
 
 ## ✨ Features
 ✅ Paint vertex colors directly in the Scene view
@@ -23,3 +22,5 @@ Select a GameObject with a MeshFilter
 Paint in the Scene view using Left Mouse Button
 
 Press Ctrl+Z to undo your paint strokes
+
+![image](image.png)
